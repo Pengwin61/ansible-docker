@@ -1,0 +1,41 @@
+---
+
+- name: DOCKER | INSTALL | Add Docker repository key
+  ansible.builtin.get_url:
+    url: "{{ docker_repository_key }}"
+    dest: /etc/apt/trusted.gpg.d/docker.asc
+    mode: "0644"
+    force: false
+
+- name: DOCKER | INSTALL | Add Docker repository
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/docker.asc] https://download.docker.com/linux/ubuntu jammy stable"
+    state: present
+    filename: docker
+
+- name: DOCKER | INSTALL | Update apt package manager cache
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: DOCKER | INSTALL | Ensure dependencies are installed
+  ansible.builtin.apt:
+    pkg: "{{ packages }}"
+    state: present
+
+- name: DOCKER | INSTALL | Copy file
+  when: inventory_hostname in groups["projects"]
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+    remote_src: "{{ item.remote_src }}"
+  with_items: "{{ docker_copy_files }}"
+  notify: Restart service docker
+
+- name: DOCKER | INSTALL | Start and enable Docker service
+  ansible.builtin.systemd:
+    name: docker
+    state: started
+    enabled: yes

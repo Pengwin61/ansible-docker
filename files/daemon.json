@@ -1,0 +1,10 @@
+{
+    "debug" : false,
+    "data-root": "/var/lib/docker",
+    "log-driver": "loki:2.9.8",
+    "log-opts": {
+        "loki-url": "http://loki.internal:3100/loki/api/v1/push",
+        "loki-batch-size": "400",
+        "loki-pipeline-stage-file":"/home/config.yml"
+    }
+}
